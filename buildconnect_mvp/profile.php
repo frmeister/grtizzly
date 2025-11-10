@@ -29,11 +29,13 @@ $u=current_user();
         <div class="mb-2"><label class="form-label">Стаж (лет)</label><input name="experience_years" class="form-control" type="number" value="<?= (int)$u['experience_years'] ?>"></div>
         <button class="btn btn-primary" name="update_profile">Сохранить</button>
       </form>
-      <hr>
-      <form method="post" class="d-flex gap-2">
-        <input class="form-control" type="number" name="amount" step="100" placeholder="Сумма пополнения">
-        <button class="btn btn-outline-success" name="deposit_topup">Пополнить депозит</button>
-      </form>
+      <?php if(is_worker()): ?>
+	  <hr>
+	  <form method="post" class="d-flex gap-2">
+		<input class="form-control" type="number" name="amount" step="100" placeholder="Сумма пополнения">
+		<button class="btn btn-outline-success" name="deposit_topup">Пополнить депозит</button>
+	  </form>
+<?php endif; ?>	
     </div>
   </div>
   <div class="col-md-6">
