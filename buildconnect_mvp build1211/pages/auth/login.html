@@ -1,0 +1,33 @@
+
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Вход — Time Jobs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--tj-accent:#4cfa00;--tj-bg:#0b0b0b}
+body{background:radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px), var(--tj-bg);background-size:24px 24px;color:#e5e7eb}
+.card{background:rgba(18,18,18,.9);border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.btn{background:var(--tj-accent);color:#000;font-weight:600;border-radius:10px;padding:.65rem 1rem}
+.input{background:#0e0e0e;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.6rem .9rem}
+</style>
+</head><body class="min-h-screen flex items-center justify-center px-4">
+<div class="card w-full max-w-md p-6">
+  <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style="background:var(--tj-accent)"><span class="text-black font-bold">tj</span></div>
+
+<h1 class="text-2xl font-bold text-center mb-4">Вход</h1>
+<form id="login" class="flex flex-col gap-3">
+  <input name="email" type="email" placeholder="Почта" class="input">
+  <input name="password" type="password" placeholder="Пароль" class="input">
+  <button class="btn w-full">Войти</button>
+</form>
+<a href="/pages/auth/register.html" class="block text-center mt-3 text-sm text-gray-300 hover:underline">Зарегистрироваться</a>
+</div>
+<script>
+const toJSON=f=>JSON.stringify(Object.fromEntries(new FormData(f).entries()));
+document.getElementById('login').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const j=await (await fetch('/api/auth/login.php',{method:'POST',headers:{'Content-Type':'application/json'},body:toJSON(e.target)})).json();
+  if(j.ok) location.href='/'; else alert('Неверные данные');
+});
+</script>
+</body></html>

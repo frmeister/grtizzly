@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Time Jobs — биржа (TJ)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--tj:#4cfa00;--bg:#0f0f0f}
+.dotted-bg{background-color:var(--bg);background-image:radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);background-size:24px 24px}
+.glass-card{background:rgba(20,20,20,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.06)}
+.tj-header{position:sticky;top:0;backdrop-filter:saturate(140%) blur(10px);background:rgba(10,10,10,.6);border-bottom:1px solid rgba(255,255,255,.06);z-index:40}
+</style>
+</head><body class="dotted-bg text-gray-200 antialiased">
+<header class="tj-header">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 ring-1 ring-white/5"><span class="text-white font-bold">TJ</span></div>
+      <div class="text-lg font-semibold">Time Jobs</div>
+    </div>
+    <nav class="flex items-center gap-4 text-sm text-gray-300">
+      <a href="/index.html">Главная</a>
+      <a href="/pages/vacancies/index.html">Вакансии</a>
+      <a href="/pages/my/index.html" class="hidden" data-role="worker">Мои отклики</a>
+      <a href="/pages/manage/index.html" class="hidden" data-role="employer">Отклики</a>
+      <a href="/pages/post/index.html" class="hidden" data-role="employer">Разместить вакансию</a>
+      <a href="/pages/support/index.html" class="hidden" data-role="moderator">Поддержка</a>
+      <a href="/pages/manage/index.html" data-role="moderator" class="hidden px-3 py-1.5 rounded-lg" style="background:var(--tj);color:#000;font-weight:600">Модерация</a>
+    </nav>
+    <div id="authBlock" class="flex gap-2 items-center">
+      <a class="px-3 py-1.5 rounded-lg border border-white/10 text-sm hover:bg-white/5" href="/pages/auth/login.html">Войти</a>
+      <a class="px-3 py-1.5 rounded-lg border border-white/10 text-sm hover:bg-white/5" href="/pages/profile/index.html">Профиль</a>
+    </div>
+  </div>
+</header>
+<main class="max-w-4xl mx-auto text-center mt-12 px-6">
+  <h1 class="text-4xl md:text-5xl font-extrabold leading-tight text-white">Найдите работу или исполнителя с <span style="color:var(--tj)">Time Jobs</span></h1>
+  <p class="mt-6 text-lg text-gray-300 max-w-2xl mx-auto">Быстрый найм для строительных проектов. Краткосрочные смены, прозрачные профили, страховой депозит.</p>
+  <div class="mt-8 max-w-2xl mx-auto flex gap-3">
+    <input id="search" type="text" placeholder="Поиск по вакансиям, городу, навыкам..." class="flex-1 px-4 py-3 rounded-lg glass-card text-sm placeholder-gray-400 focus:outline-none">
+    <button id="btnSearch" class="px-5 py-3 rounded-lg bg-[var(--tj)] text-black font-medium">Поиск</button>
+  </div>
+</main>
+<section class="max-w-6xl mx-auto px-6 mt-10" id="statsWrap"></section>
+<section class="max-w-6xl mx-auto px-6 mt-6">
+  <h2 class="text-2xl font-bold text-white mb-6">Последние вакансии</h2>
+  <div id="grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+</section>
+<script>
+fetch('/api/auth/me.php').then(function(r){return r.json()}).then(function(m){
+  if(m.ok){
+    var role=m.user.role; var nodes=document.querySelectorAll('[data-role="'+role+'"]');
+    for(var i=0;i<nodes.length;i++) nodes[i].classList.remove('hidden');
+    var avatar=(m.user.avatar && m.user.avatar.trim()!=='')?m.user.avatar:'https://ui-avatars.com/api/?background=0D8ABC&color=fff&name='+(encodeURIComponent(m.user.name||'U'));
+    document.getElementById('authBlock').innerHTML='<a href="/pages/profile/index.html" title="Профиль"><img src="'+avatar+'" class="w-9 h-9 rounded-full ring-1 ring-white/10 object-cover"/></a>';
+  }
+}).catch(function(){});
+</script>
+</body></html>

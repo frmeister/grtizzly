@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Мои вакансии — Time Jobs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+:root{--tj-accent:#4CFA00;--tj-bg:#0f0f0f}
+.dotted-bg{background-color:var(--tj-bg);background-image:radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);background-size:24px 24px}
+.glass-card{background:rgba(20,20,20,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.06)}
+.tj-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:.7rem;padding:.6rem 1rem;border:1px solid rgba(255,255,255,.08)}
+.tj-header{position:sticky;top:0;backdrop-filter:saturate(140%) blur(10px);background:rgba(10,10,10,.6);border-bottom:1px solid rgba(255,255,255,.06);z-index:40}
+#tj-toast{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:60}
+.tj-toast-item{min-width:240px;max-width:360px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#111;color:#e5e7eb;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:tj-fade .25s ease-out}
+.tj-toast-item.success{border-color:rgba(74,222,128,.35)}
+.tj-toast-item.error{border-color:rgba(248,113,113,.35)}
+@keyframes tj-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.rounded-2xl{border-radius:1rem}
+</style>
+
+</head><body class="dotted-bg text-gray-200 antialiased">
+
+<header class="tj-header">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 ring-1 ring-white/5">
+        <span class="text-white font-bold">TJ</span>
+      </div>
+      <div class="text-lg font-semibold">Time Jobs</div>
+    </div>
+    <nav class="flex items-center gap-4 text-sm text-gray-300">
+      <a href="/index.html" class="hover:text-white">Главная</a>
+      <a href="/pages/vacancies/index.html" class="hover:text-white">Вакансии</a>
+      <a href="/pages/my/index.html" class="hover:text-white hidden" data-role="worker">Мои отклики</a>
+      <a href="/pages/manage/index.html" class="hover:text-white hidden" data-role="employer">Отклики</a>
+      <a href="/pages/post/index.html" class="hover:text-white hidden" data-role="employer">Разместить вакансию</a>
+      <a href="/pages/support/index.html" class="hover:text-white hidden" data-role="moderator">Поддержка</a>
+      <a href="/pages/manage/index.html" data-role="moderator" class="hidden px-3 py-1.5 rounded-lg bg-[var(--tj-accent)] text-black text-sm font-semibold hover:brightness-95">Модерация</a>
+    </nav>
+    <div id="authBlock" class="flex gap-2 items-center">
+      <a class="tj-btn text-sm hover:bg-white/5" href="/pages/auth/login.html">Войти</a>
+      <a class="tj-btn text-sm hover:bg-white/5" href="/pages/profile/index.html">Профиль</a>
+    </div>
+  </div>
+</header>
+<script>
+(async()=>{
+  try{
+    const m=await (await fetch('/api/auth/me.php')).json();
+    if(m.ok){
+      const role=m.user.role;
+      document.querySelectorAll('[data-role="'+role+'"]').forEach(el=>el.classList.remove('hidden'));
+      const avatar=m.user.avatar&&m.user.avatar.trim()!==''?m.user.avatar:'https://ui-avatars.com/api/?background=0D8ABC&color=fff&name='+encodeURIComponent(m.user.name||'U');
+      document.getElementById('authBlock').innerHTML='<a href="/pages/profile/index.html" title="Профиль"><img src="'+avatar+'" class="w-9 h-9 rounded-full ring-1 ring-white/10 object-cover"/></a>';
+    }
+  }catch(e){}
+})();
+</script>
+
+
+<main class="max-w-6xl mx-auto px-6 mt-6">
+  <h1 class="text-2xl font-bold text-white mb-4">Мои вакансии и отклики</h1>
+  <div id="list" class="space-y-4"></div>
+  <div id="mod" class="glass-card rounded-xl p-6 mt-10 hidden">
+    <div class="flex items-center justify-between mb-3"><h2 class="text-xl font-semibold text-white">Модерация вакансий</h2><span class="text-xs text-gray-400">Только для модераторов</span></div>
+    <div id="pending" class="space-y-3"></div>
+  </div>
+</main>
+<script>
+(async()=>{
+  const me=await (await fetch('/api/auth/me.php')).json();
+  if(!me.ok){ list.innerHTML='<div class="glass-card rounded-xl p-6">Требуется вход</div>'; return; }
+  if(me.user.role!=='employer' && me.user.role!=='moderator'){ list.innerHTML='<div class="glass-card rounded-xl p-6">Доступно работодателям</div>'; }
+  if(me.user.role==='employer'){
+    const jobs=await (await fetch('/api/jobs/list.php?mine=1')).json(); list.innerHTML='';
+    for(const j of jobs.jobs){
+      const apps=await (await fetch('/api/apply/list.php?job_id='+j.id)).json();
+      const rows=apps.items.map(a=>`
+        <div class='flex items-start justify-between border-t border-white/10 pt-3 mt-3'>
+          <div class='flex items-start gap-3'>
+            <img src='${a.avatar||"https://ui-avatars.com/api/?background=0D8ABC&color=fff&name="+encodeURIComponent(a.worker_name)}' class='w-8 h-8 rounded-full ring-1 ring-white/10 object-cover'/>
+            <div><div class='text-white font-medium'>${a.worker_name}</div>
+              <div class='text-xs text-gray-400 mt-0.5'>📞 ${a.phone||'—'} • ✉️ ${a.email||'—'} • 🔗 ${a.contact||'—'}</div>
+              <div class='text-sm text-gray-300 mt-1'>${a.note||''}</div></div>
+          </div>
+          <div class='flex gap-2'>
+            <button class='px-3 py-1 rounded bg-green-600 text-black text-sm' onclick='act(${a.id},"accept")'>Принять</button>
+            <button class='px-3 py-1 rounded bg-red-600 text-black text-sm' onclick='act(${a.id},"reject")'>Отклонить</button>
+          </div>
+        </div>`).join('');
+      list.insertAdjacentHTML('beforeend',`
+        <div class="glass-card rounded-xl p-6">
+          <div class="flex justify-between items-center"><div class="text-lg font-semibold text-white">${j.title}</div><div class="text-xs text-gray-400">Откл.: ${apps.items.length}</div></div>
+          <div class="text-sm text-gray-400">${j.city||'—'} • ${j.specialization||'—'} • <span class="px-2 py-0.5 rounded-full border border-white/10 text-xs">${j.status}</span></div>
+          <div class="mt-3">${rows || '<div class="text-sm text-gray-500">Пока нет откликов</div>'}</div>
+        </div>`);
+    }
+  }
+  if(me.user.role==='moderator'){
+    mod.classList.remove('hidden');
+    const d=await (await fetch('/api/jobs/list.php?pending=1')).json(); pending.innerHTML='';
+    if(!d.jobs.length){pending.innerHTML='<div class="text-sm text-gray-400">Нет заявок</div>'}
+    d.jobs.forEach(j=>{ pending.insertAdjacentHTML('beforeend',`
+      <div class="glass-card rounded-xl p-4 flex items-center justify-between">
+        <div><div class="text-white font-semibold">${j.title}</div>
+          <div class="text-xs text-gray-400">${j.city||'—'} • ${j.specialization||'—'} • ставка ${j.wage} ₽</div></div>
+        <div class="flex gap-2"><button class="px-3 py-1 rounded bg-emerald-500 text-black text-sm" onclick="moderate(${j.id},'approve')">Одобрить</button>
+          <button class="px-3 py-1 rounded bg-rose-500 text-black text-sm" onclick="moderate(${j.id},'reject')">Отклонить</button></div>
+      </div>`); });
+  }
+})();
+async function act(id,action){const r=await (await fetch('/api/apply/update.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action})})).json(); if(r.ok){tjNotify('Статус обновлён'); location.reload();} else tjNotify('Ошибка','error');}
+async function moderate(id,action){const r=await (await fetch('/api/jobs/moderate.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,action})})).json(); if(r.ok){tjNotify('Решение сохранено'); location.reload();} else tjNotify('Ошибка','error');}
+</script>
+
+
+<script>
+window.tjNotify=(msg,type='success',timeout=2600)=>{
+  let wrap=document.getElementById('tj-toast'); if(!wrap){wrap=document.createElement('div');wrap.id='tj-toast';document.body.appendChild(wrap);}
+  const div=document.createElement('div'); div.className='tj-toast-item '+(type||''); div.innerHTML=msg;
+  wrap.appendChild(div); setTimeout(()=>{div.style.opacity=.0;div.style.transform='translateY(6px)';setTimeout(()=>div.remove(),220)}, timeout||2600);
+};
+</script>
+
+</body></html>

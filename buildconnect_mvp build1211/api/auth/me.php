@@ -1,0 +1,1 @@
+<?php require_once __DIR__.'/../db.php'; echo json_encode(isset($_SESSION['user'])?array('ok'=>true,'user'=>$_SESSION['user']):array('ok'=>false)); 

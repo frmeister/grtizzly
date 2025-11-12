@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Профиль — Time Jobs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+:root{--tj-accent:#4CFA00;--tj-bg:#0f0f0f}
+.dotted-bg{background-color:var(--tj-bg);background-image:radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);background-size:24px 24px}
+.glass-card{background:rgba(20,20,20,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.06)}
+.tj-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:.7rem;padding:.6rem 1rem;border:1px solid rgba(255,255,255,.08)}
+.tj-header{position:sticky;top:0;backdrop-filter:saturate(140%) blur(10px);background:rgba(10,10,10,.6);border-bottom:1px solid rgba(255,255,255,.06);z-index:40}
+#tj-toast{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:60}
+.tj-toast-item{min-width:240px;max-width:360px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#111;color:#e5e7eb;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:tj-fade .25s ease-out}
+.tj-toast-item.success{border-color:rgba(74,222,128,.35)}
+.tj-toast-item.error{border-color:rgba(248,113,113,.35)}
+@keyframes tj-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.rounded-2xl{border-radius:1rem}
+</style>
+
+</head><body class="dotted-bg text-gray-200 antialiased">
+
+<header class="tj-header">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 ring-1 ring-white/5">
+        <span class="text-white font-bold">TJ</span>
+      </div>
+      <div class="text-lg font-semibold">Time Jobs</div>
+    </div>
+    <nav class="flex items-center gap-4 text-sm text-gray-300">
+      <a href="/index.html" class="hover:text-white">Главная</a>
+      <a href="/pages/vacancies/index.html" class="hover:text-white">Вакансии</a>
+      <a href="/pages/my/index.html" class="hover:text-white hidden" data-role="worker">Мои отклики</a>
+      <a href="/pages/manage/index.html" class="hover:text-white hidden" data-role="employer">Отклики</a>
+      <a href="/pages/post/index.html" class="hover:text-white hidden" data-role="employer">Разместить вакансию</a>
+      <a href="/pages/support/index.html" class="hover:text-white hidden" data-role="moderator">Поддержка</a>
+      <a href="/pages/manage/index.html" data-role="moderator" class="hidden px-3 py-1.5 rounded-lg bg-[var(--tj-accent)] text-black text-sm font-semibold hover:brightness-95">Модерация</a>
+    </nav>
+    <div id="authBlock" class="flex gap-2 items-center">
+      <a class="tj-btn text-sm hover:bg-white/5" href="/pages/auth/login.html">Войти</a>
+      <a class="tj-btn text-sm hover:bg-white/5" href="/pages/profile/index.html">Профиль</a>
+    </div>
+  </div>
+</header>
+<script>
+(async()=>{
+  try{
+    const m=await (await fetch('/api/auth/me.php')).json();
+    if(m.ok){
+      const role=m.user.role;
+      document.querySelectorAll('[data-role="'+role+'"]').forEach(el=>el.classList.remove('hidden'));
+      const avatar=m.user.avatar&&m.user.avatar.trim()!==''?m.user.avatar:'https://ui-avatars.com/api/?background=0D8ABC&color=fff&name='+encodeURIComponent(m.user.name||'U');
+      document.getElementById('authBlock').innerHTML='<a href="/pages/profile/index.html" title="Профиль"><img src="'+avatar+'" class="w-9 h-9 rounded-full ring-1 ring-white/10 object-cover"/></a>';
+    }
+  }catch(e){}
+})();
+</script>
+
+
+<main class="max-w-6xl mx-auto px-6 mt-6 grid lg:grid-cols-3 gap-6">
+  <section class="glass-card rounded-xl p-6 lg:col-span-2">
+    <div class="flex items-center gap-4 mb-4">
+      <img id="avatarPreview" class="w-14 h-14 rounded-full ring-1 ring-white/10 object-cover" src=""/>
+      <div class="flex-1"><h1 class="text-xl font-semibold text-white">Мой профиль</h1><p class="text-xs text-gray-400">Заполните контакты, чтобы работодатели могли связаться</p></div>
+      <a href="/pages/my/index.html" class="tj-btn bg-white/5 text-sm">Мои отклики</a>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="glass-card rounded-xl p-4">
+        <h3 class="font-semibold text-white mb-2">О себе</h3>
+        <form id="pf" class="grid gap-2">
+          <input name="name" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Имя" disabled>
+          <input name="email" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Email" disabled>
+          <input name="education" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Образование">
+          <input name="exp_years" type="number" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Стаж (лет)">
+          <input name="avatar" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="URL аватарки">
+          <button class="tj-btn">Сохранить</button>
+        </form>
+      </div>
+      <div class="glass-card rounded-xl p-4">
+        <h3 class="font-semibold text-white mb-2">Связь</h3>
+        <form id="pf2" class="grid gap-2">
+          <input name="phone" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Телефон">
+          <input name="contact" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Telegram/WhatsApp/ссылка">
+          <button class="tj-btn">Обновить контакты</button>
+        </form>
+      </div>
+    </div>
+  </section>
+  <aside class="space-y-4">
+    <div class="glass-card rounded-xl p-4">
+      <h3 class="font-semibold text-white mb-2">Безопасность</h3>
+      <form id="pwd" class="grid gap-2">
+        <input name="current" type="password" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Текущий пароль">
+        <input name="new1" type="password" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Новый пароль">
+        <input name="new2" type="password" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Повторите новый пароль">
+        <button class="tj-btn">Сменить пароль</button>
+      </form>
+      <button id="logout" class="mt-3 text-xs text-rose-300 underline decoration-dotted">Выйти</button>
+    </div>
+    <div class="glass-card rounded-xl p-4">
+      <h3 class="font-semibold text-white mb-2">Страховой депозит</h3>
+      <div>Баланс: <b id="balance">0 ₽</b></div>
+      <form id="topup" class="mt-3 flex gap-2">
+        <input name="amount" type="number" class="px-3 py-2 rounded-lg bg-gray-900" placeholder="Сумма">
+        <button class="px-4 py-2 rounded-lg bg-[var(--tj-accent)] text-black font-semibold">Пополнить</button>
+      </form>
+    </div>
+  </aside>
+</main>
+<script>
+(async()=>{
+  const m=await (await fetch('/api/auth/me.php')).json();
+  if(!m.ok){location.href='/pages/auth/login.html'; return;}
+  for(const k in m.user){const el1=document.querySelector('#pf [name="'+k+'"]'); if(el1) el1.value=m.user[k]??''; const el2=document.querySelector('#pf2 [name="'+k+'"]'); if(el2) el2.value=m.user[k]??'';}
+  balance.textContent=(m.user.deposit_balance||0)+' ₽';
+  const av = m.user.avatar && m.user.avatar.trim()!=='' ? m.user.avatar : 'https://ui-avatars.com/api/?background=0D8ABC&color=fff&name='+encodeURIComponent(m.user.name||'U');
+  avatarPreview.src = av;
+  function collect(){return Object.assign({}, Object.fromEntries(new FormData(pf).entries()), Object.fromEntries(new FormData(pf2).entries()));}
+  pf.addEventListener('submit', async e=>{e.preventDefault(); const data=collect(); const j=await (await fetch('/api/profile/update.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})).json(); if(j.ok){tjNotify('Сохранено'); avatarPreview.src=data.avatar||avatarPreview.src;} else tjNotify('Ошибка','error');});
+  pf2.addEventListener('submit', async e=>{e.preventDefault(); const data=collect(); const j=await (await fetch('/api/profile/update.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})).json(); if(j.ok){tjNotify('Контакты обновлены');} else tjNotify('Ошибка','error');});
+  pwd.addEventListener('submit', async e=>{e.preventDefault(); const j=await (await fetch('/api/profile/change_password.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(pwd).entries()))})).json(); if(j.ok){tjNotify('Пароль изменён'); pwd.reset();} else {const map={wrong_current:'Неверный текущий пароль', weak:'Пароль слишком короткий', mismatch:'Пароли не совпадают'}; tjNotify(map[j.error]||'Ошибка','error');}});
+  topup.addEventListener('submit', async e=>{e.preventDefault(); const j=await (await fetch('/api/deposit/topup.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.fromEntries(new FormData(topup).entries()))})).json(); if(j.ok){tjNotify('Пополнение успешно'); balance.textContent=j.balance+' ₽';} else tjNotify(j.error||'Ошибка','error');});
+  logout.addEventListener('click', async ()=>{await fetch('/api/auth/logout.php'); location.href='/';});
+})();
+</script>
+
+
+<script>
+window.tjNotify=(msg,type='success',timeout=2600)=>{
+  let wrap=document.getElementById('tj-toast'); if(!wrap){wrap=document.createElement('div');wrap.id='tj-toast';document.body.appendChild(wrap);}
+  const div=document.createElement('div'); div.className='tj-toast-item '+(type||''); div.innerHTML=msg;
+  wrap.appendChild(div); setTimeout(()=>{div.style.opacity=.0;div.style.transform='translateY(6px)';setTimeout(()=>div.remove(),220)}, timeout||2600);
+};
+</script>
+
+</body></html>

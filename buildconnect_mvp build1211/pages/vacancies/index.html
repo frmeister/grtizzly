@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Все вакансии — Time Jobs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+:root{--tj-accent:#4CFA00;--tj-bg:#0f0f0f}
+.dotted-bg{background-color:var(--tj-bg);background-image:radial-gradient(rgba(255,255,255,0.02) 1px, transparent 1px);background-size:24px 24px}
+.glass-card{background:rgba(20,20,20,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.06)}
+.tj-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:.7rem;padding:.6rem 1rem;border:1px solid rgba(255,255,255,.08)}
+.tj-header{position:sticky;top:0;backdrop-filter:saturate(140%) blur(10px);background:rgba(10,10,10,.6);border-bottom:1px solid rgba(255,255,255,.06);z-index:40}
+#tj-toast{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:60}
+.tj-toast-item{min-width:240px;max-width:360px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#111;color:#e5e7eb;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:tj-fade .25s ease-out}
+.tj-toast-item.success{border-color:rgba(74,222,128,.35)}
+.tj-toast-item.error{border-color:rgba(248,113,113,.35)}
+@keyframes tj-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.rounded-2xl{border-radius:1rem}
+</style>
+
+</head><body class="dotted-bg text-gray-200 antialiased">
+
+<header class="tj-header">
+  <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 ring-1 ring-white/5">
+        <span class="text-white font-bold">TJ</span>
+      </div>
+      <div class="text-lg font-semibold">Time Jobs</div>
+    </div>
+    <nav class="flex items-center gap-4 text-sm text-gray-300">
+      <a href="/index.html" class="hover:text-white">Главная</a>
+      <a href="/pages/vacancies/index.html" class="hover:text-white">Вакансии</a>
+      <a href="/pages/my/index.html" class="hover:text-white hidden" data-role="worker">Мои отклики</a>
+      <a href="/pages/manage/index.html" class="hover:text-white hidden" data-role="employer">Отклики</a>
+      <a href="/pages/post/index.html" class="hover:text-white hidden" data-role="employer">Разместить вакансию</a>
+      <a href="/pages/support/index.html" class="hover:text-white hidden" data-role="moderator">Поддержка</a>
+      <a href="/pages/manage/index.html" data-role="moderator" class="hidden px-3 py-1.5 rounded-lg bg-[var(--tj-accent)] text-black text-sm font-semibold hover:brightness-95">Модерация</a>
+    </nav>
+    <div id="authBlock" class="flex gap-2 items-center">
+      <a class="tj-btn text-sm hover:bg-white/5" href="/pages/auth/login.html">Войти</a>
+      <a class="tj-btn text-sm hover:bg-white/5" href="/pages/profile/index.html">Профиль</a>
+    </div>
+  </div>
+</header>
+<script>
+(async()=>{
+  try{
+    const m=await (await fetch('/api/auth/me.php')).json();
+    if(m.ok){
+      const role=m.user.role;
+      document.querySelectorAll('[data-role="'+role+'"]').forEach(el=>el.classList.remove('hidden'));
+      const avatar=m.user.avatar&&m.user.avatar.trim()!==''?m.user.avatar:'https://ui-avatars.com/api/?background=0D8ABC&color=fff&name='+encodeURIComponent(m.user.name||'U');
+      document.getElementById('authBlock').innerHTML='<a href="/pages/profile/index.html" title="Профиль"><img src="'+avatar+'" class="w-9 h-9 rounded-full ring-1 ring-white/10 object-cover"/></a>';
+    }
+  }catch(e){}
+})();
+</script>
+
+
+<main class="max-w-6xl mx-auto px-6 mt-6">
+  <div class="glass-card rounded-xl p-4 grid grid-cols-1 md:grid-cols-5 gap-3">
+    <input id="f-q" class="px-3 py-2 rounded-lg bg-gray-900 text-sm" placeholder="Поиск...">
+    <input id="f-city" class="px-3 py-2 rounded-lg bg-gray-900 text-sm" placeholder="Город">
+    <select id="f-spec" class="px-3 py-2 rounded-lg bg-gray-900 text-sm">
+      <option value="">Специализация</option><option>Разнорабочий</option><option>Плотник</option><option>Каменщик</option><option>Электрик</option><option>Сварщик</option>
+    </select>
+    <button id="f-apply" class="px-4 py-2 rounded-lg bg-[var(--tj-accent)] text-black font-semibold md:col-span-2">Применить</button>
+  </div>
+  <div id="grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6"></div>
+</main>
+<script>
+async function load(){const u=new URL('/api/jobs/list.php', location.href);
+  const q=f_q.value.trim(), city=f_city.value.trim(), spec=f_spec.value;
+  if(q)u.searchParams.set('q',q); if(city)u.searchParams.set('city',city); if(spec)u.searchParams.set('spec',spec);
+  const d=await (await fetch(u)).json(); grid.innerHTML='';
+  if(!d.jobs.length){grid.innerHTML='<div class="glass-card rounded-xl p-6">Нет вакансий</div>'; return;}
+  d.jobs.forEach(j=>{grid.insertAdjacentHTML('beforeend',`
+    <div class="glass-card rounded-xl p-6">
+      <div class="flex justify-between items-center"><h3 class="text-lg font-semibold text-white">${j.title}</h3><span class="text-xs text-gray-400">Откл.: ${j.applicants}</span></div>
+      <p class="text-sm text-gray-400 mt-1">${j.city||'—'} • ${j.specialization||'—'}</p>
+      <p class="text-sm text-gray-300 mt-3">${(j.description||'').slice(0,160)}${j.description&&j.description.length>160?'…':''}</p>
+      <div class="mt-4 flex justify-between items-center"><span class="text-green-400 font-semibold">${j.wage} ₽</span><a href="/pages/vacancy/index.html?id=${j.id}" class="text-sm text-blue-400 hover:underline">Подробнее →</a></div>
+    </div>`);});
+}
+document.getElementById('f-apply').addEventListener('click',load); load();
+</script>
+
+
+<script>
+window.tjNotify=(msg,type='success',timeout=2600)=>{
+  let wrap=document.getElementById('tj-toast'); if(!wrap){wrap=document.createElement('div');wrap.id='tj-toast';document.body.appendChild(wrap);}
+  const div=document.createElement('div'); div.className='tj-toast-item '+(type||''); div.innerHTML=msg;
+  wrap.appendChild(div); setTimeout(()=>{div.style.opacity=.0;div.style.transform='translateY(6px)';setTimeout(()=>div.remove(),220)}, timeout||2600);
+};
+</script>
+
+</body></html>

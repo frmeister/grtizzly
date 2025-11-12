@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Регистрация — Time Jobs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root{--tj:#4cfa00;--bg:#0b0b0b}
+body{background:radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px), var(--bg);background-size:24px 24px;color:#e5e7eb}
+.card{background:rgba(18,18,18,.9);border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.btn{background:var(--tj);color:#000;font-weight:600;border-radius:10px;padding:.65rem 1rem}
+.input{background:#0e0e0e;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.6rem .9rem}
+#tj-toast{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:60}
+.tj-toast-item{min-width:240px;max-width:360px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#111;color:#e5e7eb}
+</style>
+</head><body class="min-h-screen flex items-center justify-center px-4">
+<div class="card w-full max-w-md p-6">
+  <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3" style="background:var(--tj)"><span class="text-black font-bold">tj</span></div>
+  <h1 class="text-2xl font-bold text-center mb-4">Регистрация</h1>
+  <form id="reg" class="flex flex-col gap-3">
+    <input name="name" placeholder="Имя" class="input">
+    <input name="email" type="email" placeholder="Почта" class="input">
+    <input type="hidden" name="role" value="worker">
+    <div class="grid grid-cols-2 gap-2">
+      <button type="button" data-r="worker" class="input text-center">Соискатель</button>
+      <button type="button" data-r="employer" class="input text-center">Компания</button>
+    </div>
+    <input name="password" type="password" placeholder="Пароль" class="input">
+    <button class="btn w-full">Создать аккаунт</button>
+    <a href="/pages/auth/login.html" class="block text-center mt-3 text-sm text-gray-300 hover:underline">У меня уже есть аккаунт</a>
+  </form>
+</div>
+<div id="tj-toast"></div>
+<script>
+function toast(m){var w=document.getElementById('tj-toast'); var d=document.createElement('div'); d.className='tj-toast-item'; d.innerHTML=m; w.appendChild(d); setTimeout(function(){d.remove();},2200);}
+document.querySelectorAll('#reg [data-r]').forEach(function(b){b.addEventListener('click',function(){document.querySelector('#reg [name=role]').value=b.getAttribute('data-r'); toast('Роль: '+(b.getAttribute('data-r')==='worker'?'Соискатель':'Компания'));});});
+function toJSON(f){return JSON.stringify(Object.fromEntries(new FormData(f).entries()));}
+document.getElementById('reg').addEventListener('submit', async function(e){e.preventDefault();
+  var j = await (await fetch('/api/auth/register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:toJSON(e.target)})).json();
+  if(j.ok){ toast('Вы успешно зарегистрированы'); setTimeout(function(){location.href='/';},900); } else { toast('Ошибка регистрации'); }
+});
+</script>
+</body></html>
