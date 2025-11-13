@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Time Jobs{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gray-900 text-gray-200">
+    <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 ring-1 ring-white/5 flex items-center justify-center">
+                    <span class="text-white font-bold">TJ</span>
+                </div>
+                <a href="{{ url_for('index') }}" class="text-lg font-semibold">Time Jobs</a>
+            </div>
+            
+            <nav class="flex items-center gap-4 text-sm text-gray-300">
+                <a href="{{ url_for('index') }}" class="hover:text-green-400">Главная</a>
+                <a href="{{ url_for('vacancies') }}" class="hover:text-green-400">Вакансии</a>
+                
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'worker' %}
+                        <a href="#" class="hover:text-green-400">Мои отклики</a>
+                    {% elif current_user.role == 'employer' %}
+                        <a href="{{ url_for('create_vacancy') }}" class="hover:text-green-400">Разместить вакансию</a>
+                        <a href="#" class="hover:text-green-400">Отклики</a>
+                    {% elif current_user.role == 'moderator' %}
+                        <a href="{{ url_for('moderation') }}" class="bg-green-500 text-black px-3 py-1.5 rounded-lg font-semibold">Модерация</a>
+                    {% endif %}
+                {% endif %}
+            </nav>
+            
+            <div class="flex gap-2 items-center">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('profile') }}" class="flex items-center gap-2 hover:text-green-400">
+                        {% if current_user.avatar %}
+                            <img src="{{ current_user.avatar }}" class="w-8 h-8 rounded-full object-cover">
+                        {% else %}
+                            <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center">
+                                {{ current_user.name[0] }}
+                            </div>
+                        {% endif %}
+                        <span>{{ current_user.name }}</span>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="px-3 py-1.5 rounded-lg border border-gray-600 hover:bg-gray-700">Выйти</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="px-3 py-1.5 rounded-lg border border-gray-600 hover:bg-gray-700">Войти</a>
+                    <a href="{{ url_for('register') }}" class="px-3 py-1.5 rounded-lg bg-green-500 text-black font-semibold hover:bg-green-400">Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
